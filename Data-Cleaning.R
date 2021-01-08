@@ -56,6 +56,8 @@ data <- data %>%
 
 #null value icin gorsellestirmeyi yeniden run edersek missing deger kalmadigini goruruz
 
+plot_Missing(data[,colSums(is.na(data)) >= 0, with = FALSE])
+
 dim(data)
 
 cat('Data has', dim(data)[1], 'rows and', dim(data)[2], 'columns.')
