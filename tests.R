@@ -24,6 +24,8 @@ library(caTools)
 library(party) 
 library(dplyr) 
 library(magrittr) 
+library(rpart)
+library(rpart.plot)
 ##
 
 data <- read.csv("data.csv")
@@ -99,10 +101,29 @@ df2.train <- data.frame(df2[samp,])
 df2.valid <- data.frame(df2[-samp,])
 
 
-library(rpart)
-library(rpart.plot)
 fit <- rpart(Winner~., data = df2.train, method = 'class')
-rpart.plot(fit, extra = 106)
+rpart.plot
+
+###############
+
+
+tree <- rpart(Winner ~ ., data = df2.train)
+
+res <- predict(tree, test)
+######################################
+
+
+
+
+
+########KNN############
+
+
+
+
+
+
+
 
 
 
