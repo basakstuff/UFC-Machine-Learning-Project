@@ -96,26 +96,46 @@ colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontro
 #b_win <- df2 %>% filter(Winner == "Blue")
 
 set.seed(1023)
-samp <- sample(nrow(df2), nrow(df2)*0.8)
+samp <- sample(nrow(df2), nrow(df2)*0.7)
 df2.train <- data.frame(df2[samp,])
 df2.valid <- data.frame(df2[-samp,])
 
 
-fit <- rpart(Winner~., data = df2.train, method = 'class')
-rpart.plot(fit, extra = 106)
+fit <- rpart(B_age ~ Winner  + B_total_title_bouts + B_losses, data = df2.train, method = 'class')
+rpart.plot(fit, box.palette="red")
 
 ###############
-
 
 tree <- rpart(Winner ~ ., data = df2.train)
 
 res <- predict(tree, test)
 ######################################
+summary(df2)
+model <- rpart(
+  Winner ~ weight_class + B_age + R_age,
+  data = df2.train, 
+  control = rpart.control(minsplit = 2))
+
+rpart.plot(model, box.palette="blue")
+
+rpart <- rpart(B_age ~ Winner  + B_total_title_bouts + B_losses,
+               data=df2.train,
+               method="class",
+               parms=list(split="information"),
+               control=rpart.control(minsplit=2,
+                                     usesurrogate=0, 
+                                     maxsurrogate=0))
+
+# Generate a textual view of the Decision Tree model.
+print(rpart)
+rpart.plot(rpart, extra = 106)
+
+par(xpd = NA, mar = rep(0.7, 4)) 
+plot(model, compress = TRUE)
+text(model, cex = 0.7, use.n = TRUE, fancy = FALSE, all = TRUE)
 
 
-
-
-
+prp(rpart)
 ########KNN############
 
 
