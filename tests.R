@@ -19,6 +19,11 @@ library(formattable)
 library(funModeling) 
 library(tidyverse) 
 library(Hmisc)
+library(datasets)  
+library(caTools) 
+library(party) 
+library(dplyr) 
+library(magrittr) 
 ##
 
 data <- read.csv("data.csv")
@@ -84,5 +89,21 @@ colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontro
 
 
 ###################DT###################
+
+#df2$Winner <- revalue(df2$Winner, c("0"=1))
+#b_win <- df2 %>% filter(Winner == "Blue")
+
+set.seed(1023)
+samp <- sample(nrow(df2), nrow(df2)*0.8)
+df2.train <- data.frame(df2[samp,])
+df2.valid <- data.frame(df2[-samp,])
+
+
+library(rpart)
+library(rpart.plot)
+fit <- rpart(Winner~., data = df2.train, method = 'class')
+rpart.plot(fit, extra = 106)
+
+
 
 
