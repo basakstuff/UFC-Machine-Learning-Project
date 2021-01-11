@@ -102,7 +102,7 @@ df2.valid <- data.frame(df2[-samp,])
 
 
 fit <- rpart(Winner~., data = df2.train, method = 'class')
-rpart.plot
+rpart.plot(fit, extra = 106)
 
 ###############
 
@@ -117,13 +117,6 @@ res <- predict(tree, test)
 
 
 ########KNN############
-
-
-
-
-
-
-
 
 
 
