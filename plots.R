@@ -82,9 +82,9 @@ colnames(df2)
 ggplot(df2, aes(x=(R_Reach_cms - B_Reach_cms), y =..density.., fill=..count..)) + geom_histogram(binwidth = 5, ) + labs(x = "Reach Difference (cm)", title = "Histogram for Red Fighter Reach Difference") + scale_fill_gradient("Count", low="green", high="red")
 
 # make a bar plot
-ggplot(df2, aes(x = B_age)) + geom_bar() #B_age
+ggplot(df2, aes(x = B_age)) + geom_bar(fill = "#0000FF") #B_age
 
-ggplot(df2, aes(x = R_age)) + geom_bar() #R_age
+ggplot(df2, aes(x = R_age)) + geom_bar(fill = "#FF0000") #R_age
 
 
 temp <- df2 %>% select(B_fighter,B_wins)
