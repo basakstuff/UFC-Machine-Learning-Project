@@ -71,12 +71,6 @@ colSums(sapply(df2[,.SD, .SDcols = cat_var2], is.na)) #kategorikte null kontrolu
 colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontrolu
 
 
-colnames(df2)
-
-df2$B_total_rounds_fought
-df2$R_total_rounds_fought
-
-
 ########plots#################
 colnames(df2)
 
@@ -153,6 +147,17 @@ summary(numeric_data)
 cor_data <- cor(numeric_data)
 corrplot(cor_data, method = "circle", order = "alphabet", type = "upper", tl.col = "black")
 corrplot(cor_data, method = "color", type = "upper", tl.col = "black", order="hclust") ###en iyisi
+
+####################################yenni
+library(dplyr)
+library(tidyr)
+cor_mat <- cor(numeric_data)
+cor_mat[!lower.tri(cor_mat)] <- NA # remove diagonal and redundant values
+data.frame( cor_mat) %>%
+  rownames_to_column() %>%
+  gather(key="variable", value="correlation", -rowname) %>%
+  filter(abs(correlation) > 0.9)
+
 
 
 
