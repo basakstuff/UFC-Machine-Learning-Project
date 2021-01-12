@@ -71,9 +71,10 @@ colSums(sapply(df2[,.SD, .SDcols = cat_var2], is.na)) #kategorikte null kontrolu
 colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontrolu
 
 
+colnames(df2)
 
-
-
+df2$B_total_rounds_fought
+df2$R_total_rounds_fought
 
 
 ########plots#################
@@ -163,7 +164,7 @@ year <- format(as.Date(df2$date, format="%Y-%m-%d"),"%Y")
 
 custom_col <- c("blue", "green", "red") 
 
-fig(12,8)                   
+                   
 ggplot(df2, aes(x = "", y="", fill = factor(Winner))) + 
   geom_bar(width = 1, stat = "identity") +
   theme(axis.line = element_blank(), 
@@ -177,3 +178,42 @@ ggplot(df2, aes(x = "", y="", fill = factor(Winner))) +
 ####
 plot_num(df2)
 #############
+is.num <- sapply(df2, is.numeric) # Format to 3 Decimal Points
+df2 [is.num] <- lapply(df2 [is.num], round, 3)
+
+weight_class <- df2$weight_class
+weight_class <- na.omit(weight_class) # drop na
+weight_class <- as.data.frame(table(df2$weight_class)) # frequency
+
+t2 <- list(family = "sans-serif",size = 16,color = 'black') # Text style
+m2 <- list(l = 50,r = 50,b = 100,t = 100,pad = 4) # Magins
+b <- plot_ly(weight_class, labels = ~Var1, values = ~Freq)%>%add_pie(hole = 0.6) %>%
+  layout(title = "UFC Weight Class 2010 - 2019",
+         showlegend = T,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE,showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         font = t
+  )
+
+print(b)
+
+######################################
+fighter_measures <- data.frame(
+  "height"  = c(df2$B_Height_cms, df2$R_Height_cms),
+  "reach"   = c(df2$B_Reach_cms, df2$R_Reach_cms),
+  "age"     = c(df2$B_age, df2$R_age))
+fighter_measures <- na.omit(fighter_measures)
+
+p1 <- ggplot(fighter_measures, aes(x=age))+
+  geom_density(color="darkblue", fill="lightblue")
+
+p2 <- ggplot(fighter_measures, aes(x=height))+
+  geom_density(color="darkblue", fill="lightblue")
+
+p4 <- ggplot(fighter_measures, aes(x=reach))+
+  geom_density(color="darkblue", fill="lightblue")
+
+grid.arrange(p1, p2, p4,  ncol=2, nrow=2)
+
+
+

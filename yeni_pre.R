@@ -32,7 +32,7 @@ data <- read.csv("data.csv")
 setDT(data)
 
 
-
+dim(data)
 
 
 #############################################################################
@@ -50,16 +50,16 @@ df1 <- subset.data.frame(df1, subset= date >= "2010-01-01")
 
 ## null iceren dataset degiskenleri############
 
-cat_var1 <- names(df1)[which(sapply(df1, is.character))] #kategorik
-numeric_var1 <- names(df1)[which(sapply(df1, is.numeric))] #numeric
+cat_var1 <- names(data)[which(sapply(data, is.character))] #kategorik
+numeric_var1 <- names(data)[which(sapply(data, is.numeric))] #numeric
 
-colSums(sapply(df1[,.SD, .SDcols = cat_var1], is.na))
+colSums(sapply(data[,.SD, .SDcols = cat_var1], is.na))
 
-colSums(sapply(df1[,.SD, .SDcols = numeric_var1], is.na)) #numericte null kontrolu
+colSums(sapply(data[,.SD, .SDcols = numeric_var1], is.na)) #numericte null kontrolu
 
 ## null icermeyen  dataset degiskenleri############
 
-df2 <- na.omit(df1) ##null rowlari sildi
+df2 <- na.omit(data) ##null rowlari sildi
 
 cat_var2 <- names(df2)[which(sapply(df2, is.character))] #kategorik
 numeric_var2 <- names(df2)[which(sapply(df2, is.numeric))] #numeric
@@ -69,66 +69,34 @@ colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontro
 ###########################################################################
 
 
+numeric_data <- select_if(df2, is.numeric)
 
+numeric_data <- numeric_data %>% select(-B_draw, -R_draw) #std is zero
 
+summary(numeric_data)
 
+cor_data <- cor(numeric_data)
+corrplot(cor_data, method = "circle", order = "alphabet", type = "upper", tl.col = "black")
+corrplot(cor_data, method = "color", type = "upper", tl.col = "black", order="hclust") ###en iyisi
 
+#####################################
+library(dplyr)
+library(tidyr)
+cor_mat <- cor(numeric_data)
+cor_mat[!lower.tri(cor_mat)] <- NA # remove diagonal and redundant values
+data.frame( cor_mat) %>%
+  rownames_to_column() %>%
+  gather(key="variable", value="correlation", -rowname) %>%
+  filter(abs(correlation) > 0.9)
 
+w = table(df2$Winner)
 
-#****************************************************************************************************#
+colnames(df2)
 
-#**************DT********************
+df2$no_of_rounds
 
-#df2$Winner <- revalue(df2$Winner, c("0"=1))
-#b_win <- df2 %>% filter(Winner == "Blue")
-
-str(df2)
-df2$Winner <- as.factor(df2$Winner)
-
-set.seed(1023)
-samp <- sample(nrow(df2), nrow(df2)*0.7)
-df2.train <- data.frame(df2[samp,])
-df2.valid <- data.frame(df2[-samp,])
-
-
-fit <- rpart(B_wins ~ B_age  + B_total_title_bouts + B_losses +B_Height_cms+B_Reach_cms, data = df2.train, method = 'class')
-# Visualize the decision tree with rpart.plot
-rpart.plot(fit, box.palette="RdBu", shadow.col="gray", nn=TRUE)
-
-###############
-
-tree <- rpart(Winner ~ ., data = df2.train)
-
-res <- predict(tree, test)
-######################################
-summary(df2)
-model <- rpart(
-  Winner ~ weight_class + B_age + R_age,
-  data = df2.train, 
-  control = rpart.control(minsplit = 2))
-
-rpart.plot(model, box.palette="blue")
-
-rpart <- rpart(B_wins ~ Winner  + weight_class  + B_losses,
-               data=df2.train,
-               method="class",
-               parms=list(split="information"),
-               control=rpart.control(minsplit=2,
-                                     usesurrogate=0, 
-                                     maxsurrogate=0))
-
-# Generate a textual view of the Decision Tree model.
-print(rpart)
-rpart.plot(rpart)
-
-par(xpd = NA, mar = rep(0.7, 4)) 
-plot(model, compress = TRUE)
-text(model, cex = 0.7, use.n = TRUE, fancy = FALSE, all = TRUE)
-
-
-prp(rpart)
-########KNN############
-
+str(df2$no_of_rounds)
+df2$no_of_rounds <- as.factor(df2$no_of_rounds)
 
 
 
