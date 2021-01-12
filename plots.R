@@ -163,7 +163,7 @@ year <- format(as.Date(df2$date, format="%Y-%m-%d"),"%Y")
 
 custom_col <- c("blue", "green", "red") 
 
-fig(12,8)                   
+                   
 ggplot(df2, aes(x = "", y="", fill = factor(Winner))) + 
   geom_bar(width = 1, stat = "identity") +
   theme(axis.line = element_blank(), 
