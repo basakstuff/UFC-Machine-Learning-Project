@@ -118,7 +118,7 @@ model <- rpart(
 
 rpart.plot(model, box.palette="blue")
 
-rpart <- rpart(B_age ~ Winner  + B_total_title_bouts + B_losses,
+rpart <- rpart(B_wins ~ Winner  + weight_class  + B_losses,
                data=df2.train,
                method="class",
                parms=list(split="information"),
@@ -128,7 +128,7 @@ rpart <- rpart(B_age ~ Winner  + B_total_title_bouts + B_losses,
 
 # Generate a textual view of the Decision Tree model.
 print(rpart)
-rpart.plot(rpart, extra = 106)
+rpart.plot(rpart)
 
 par(xpd = NA, mar = rep(0.7, 4)) 
 plot(model, compress = TRUE)
