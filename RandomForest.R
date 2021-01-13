@@ -121,18 +121,21 @@ rf_classifier <- randomForest(Winner~., data = rf_data, norm.votes = TRUE, proxi
 # RF Predictions on unseen testing set
 rfpred <- predict(rf_classifier, prepared_dataset$testing_set)
 
-train_control <- trainControl(method = "LOOCV") 
 
-# training the model by assigning sales column 
-# as target variable and rest other column 
-# as independent varaible 
-model <- train(Winner ~., data = rf_data,  
-               method = "lm", 
-               trControl = train_control) 
+# Confusion Matrix
+print("Normal RF Consufion Matrix:")
+cm <- confusionMatrix(rfpred, prepared_dataset$test_category)
+print(cm)
 
-# printing model performance metrics 
-# along with other details 
-print(rf_classifier)
+print("---------------------------------------------------------")
+
+# Print accuracy
+print(paste("RF Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
+
+# Save SVM model
+#saveRDS(rf_classifier, file = "RF_MODEL-test.rds"
+#        ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
+
 
 
 
