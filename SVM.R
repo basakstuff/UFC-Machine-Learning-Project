@@ -20,7 +20,6 @@ library(formattable)
 
 data <- read.csv("data.csv")
 
-
 ########## 2010 sonrası ve secilmis features #############
 
 df1 <- data %>%
@@ -65,7 +64,7 @@ df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))
 df2$title_bout <- as.numeric(factor(df2$title_bout))
 df2$weight_class <- as.numeric(factor(df2$weight_class))
 df2$Winner<-factor(df2$Winner)
-df2$Winner <- as.numeric(factor(df2$Winner))
+#df2$Winner <- as.numeric(factor(df2$Winner))
 
 ###########################################################
 
@@ -99,15 +98,16 @@ prepare_data <- function(df, output_col_n, ratio){
 
 UFC_DATA <- df2 # Normal data
 
-
-# Train/test split with 0.5 ratio
-prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 2, ratio = 0.7)
+#grep("Winner", colnames(UFC_DATA))
+# Train/test split with 0.8 ratio
+prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 1, ratio = 0.8)
 
 # Concat X and y for SVM training
 svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
 
 
-str(svm_data)
+#str(svm_data)
+
 # SVM Classifier
 svm_classifier <- svm(Winner ~ ., 
                       data = svm_data, 
@@ -117,52 +117,15 @@ svm_classifier <- svm(Winner ~ .,
                       scale=TRUE,
                       probability=TRUE)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Concat X and y for SVM training
-svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
-
-str(svm_data)
-# SVM Classifier
-svm_classifier <- svm(Winner ~ ., 
-                      data = svm_data, 
-                      type = 'C-classification', 
-                      kernel = 'radial',
-                      cost=10,
-                      scale=TRUE,
-                      probability=TRUE)
-
-
-
-# SVM Predictions on unseen testing set
 svmpred <- predict(svm_classifier, newdata=prepared_dataset$testing_set, probability = TRUE)
+
 
 # Confusion Matrix
 print("Normal SVM Consufion Matrix:")
-cm <- confusionMatrix(svmpred, prepared_dataset$test_category)
+cm <- confusionMatrix(table(svmpred, prepared_dataset$test_category)) 
 print(cm)
-
 print("---------------------------------------------------------")
 
-
-print("---------------------------------------------------------")
-
-# Print accuracy
 print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
 
 # Save SVM model
@@ -172,4 +135,21 @@ print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen dat
 
 print("~~ SVM ENDED:")
 
+#
+#********************Matrix Visualization*****************************
+#
 
+table <- data.frame(confusionMatrix(svmpred, prepared_dataset$test_category)$table)
+
+plotTable <- table %>%
+  mutate(goodbad = ifelse(table$Prediction == table$Reference, "good", "bad")) %>%
+  group_by(Reference) %>%
+  mutate(prop = Freq/sum(Freq))
+
+# fill alpha relative to sensitivity/specificity by proportional outcomes within reference groups (see dplyr code above as well as original confusion matrix for comparison)
+ggplot(data = plotTable, mapping = aes(x = Reference, y = Prediction, fill = goodbad, alpha = prop)) +
+  geom_tile() +
+  geom_text(aes(label = Freq), vjust = .5, fontface  = "bold", alpha = 1) +
+  scale_fill_manual(values = c(good = "green", bad = "red")) +
+  theme_bw() +
+  xlim(rev(levels(table$Reference)))
