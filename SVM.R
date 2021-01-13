@@ -19,7 +19,6 @@ library(formattable)
 ######
 
 data <- read.csv("data.csv")
-setDT(data)
 
 
 ########## 2010 sonrası ve secilmis features #############
@@ -62,15 +61,22 @@ dim(data)
 dim(df1)
 dim(df2)
 ################################
+df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))
+df2$title_bout <- as.numeric(factor(df2$title_bout))
+df2$weight_class <- as.numeric(factor(df2$weight_class))
+df2$Winner<-factor(df2$Winner)
+df2$Winner <- as.numeric(factor(df2$Winner))
 
-numeric_data <- select_if(df2, is.numeric)
+###########################################################
 
-prepare_data <- function(df, ratio){
+
+prepare_data <- function(df, output_col_n, ratio){
   # Randomisation with train to test ratio
   random <- sample(1:nrow(df), ratio * nrow(df))
   
   # Normalisation
-  df_normalised <- df[,-2]
+  normalised <- function(x) {return((x - min(x,rm.na=TRUE))/(max(x,rm.na=TRUE)-min(x,rm.na=TRUE)))}
+  df_normalised <- as.data.frame(lapply(df[,-output_col_n], normalised))
   
   # Extract training set
   df_train <- df_normalised[random,] 
@@ -78,15 +84,13 @@ prepare_data <- function(df, ratio){
   df_test <- df_normalised[-random,]
   
   # Output category
-  df_target_category <- df[random,2]
-  df_test_category <- df[-random,2]
+  df_target_category <- df[random,output_col_n]
+  df_test_category <- df[-random,output_col_n]
   
   toReturn <- list("training_set" = df_train, "testing_set" = df_test,"target_category" = df_target_category,"test_category"= df_test_category)
   
   return(toReturn)
 }
-
-UFC_DATA <- UFC_DATA[, -2]
 
 
 # ************************************************
@@ -95,14 +99,15 @@ UFC_DATA <- UFC_DATA[, -2]
 
 UFC_DATA <- df2 # Normal data
 
-print("Running ...")
 
+# Train/test split with 0.5 ratio
+prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 2, ratio = 0.7)
 
-# Train/test split with 0.7 ratio
-prepared_dataset <- prepare_data(df = UFC_DATA,ratio = 0.7)
-
+# Concat X and y for SVM training
 svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
 
+
+str(svm_data)
 # SVM Classifier
 svm_classifier <- svm(Winner ~ ., 
                       data = svm_data, 
@@ -111,5 +116,60 @@ svm_classifier <- svm(Winner ~ .,
                       cost=10,
                       scale=TRUE,
                       probability=TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Concat X and y for SVM training
+svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
+
+str(svm_data)
+# SVM Classifier
+svm_classifier <- svm(Winner ~ ., 
+                      data = svm_data, 
+                      type = 'C-classification', 
+                      kernel = 'radial',
+                      cost=10,
+                      scale=TRUE,
+                      probability=TRUE)
+
+
+
+# SVM Predictions on unseen testing set
+svmpred <- predict(svm_classifier, newdata=prepared_dataset$testing_set, probability = TRUE)
+
+# Confusion Matrix
+print("Normal SVM Consufion Matrix:")
+cm <- confusionMatrix(svmpred, prepared_dataset$test_category)
+print(cm)
+
+print("---------------------------------------------------------")
+
+
+print("---------------------------------------------------------")
+
+# Print accuracy
+print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
+
+# Save SVM model
+#saveRDS(svm_classifier, file = "SVM_MODEL.rds"
+#        ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
+
+
+print("~~ SVM ENDED:")
 
 
