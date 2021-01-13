@@ -99,6 +99,8 @@ prepare_data <- function(df, output_col_n, ratio){
 UFC_DATA <- df2 # Normal data
 
 #grep("Winner", colnames(UFC_DATA))
+
+set.seed(123)
 # Train/test split with 0.8 ratio
 prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 1, ratio = 0.8)
 
