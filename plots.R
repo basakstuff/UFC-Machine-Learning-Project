@@ -152,15 +152,13 @@ corrplot(cor_data, method = "circle", order = "alphabet", type = "upper", tl.col
 corrplot(cor_data, method = "color", type = "upper", tl.col = "black", order="hclust") ###en iyisi
 
 ####################################yenni
-library(dplyr)
-library(tidyr)
+
 cor_mat <- cor(numeric_data)
 cor_mat[!lower.tri(cor_mat)] <- NA # remove diagonal and redundant values
 data.frame( cor_mat) %>%
   rownames_to_column() %>%
   gather(key="variable", value="correlation", -rowname) %>%
-  filter(abs(correlation) > 0.9)
-
+  filter(abs(correlation) > 0.8)
 
 
 
