@@ -16,7 +16,6 @@ library(magrittr) # needs to be run every time you start R and want to use %>%
 library(dplyr)    # alternatively, this also loads %>%
 library(class)
 library(formattable)
-library(randomForest)
 ######
 
 df2 <- read.csv("df2.csv")
@@ -54,85 +53,63 @@ prepare_data <- function(df, output_col_n, ratio){
 }
 
 
-perform_knn <- function(df_train, df_test, df_target_category,
-                        df_test_category, k){
-  
-  #Run the knn function
-  df_KNN <- knn(train = df_train,test = df_test,cl = df_target_category,k = k)
-  df_TAB <- table(df_KNN,df_test_category)
-  
-  #Out put the accuracy.
-  accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
-  
-  toReturn <- list("accuracy" = accuracy(df_TAB), "predicted" = df_KNN)
-  return(toReturn)
-  
-}
-
-
 # ************************************************
 # main code goes below:
 # ************************************************
-k_value <- c()
-avg_accuracy <- c()
-
 
 UFC_DATA <- df2 # Normal data
 
 #grep("Winner", colnames(UFC_DATA))
 
 set.seed(123)
-
 # Train/test split with 0.8 ratio
-prepared_dataset <- prepare_data(df = UFC_DATA,output_col_n = 1, ratio = 0.8)
+prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 1, ratio = 0.8)
 
 
-# KNN: Experiment tange of K values:    # note: initially, values 1 to 100 were tested as k.
-for(k in 1:100){
-  k_value <- c(k_value,k)
-  
-  # accuracy per run
-  accuracies <- c()
-  
-  # number of runs per K    # note: initially, tested for 30 runs
-  for(i in 1:30){
-    accuracies<- c(accuracies,perform_knn(df_train = prepared_dataset$training_set, df_test = prepared_dataset$testing_set, df_target_category = prepared_dataset$target_category,
-                                          df_test_category = prepared_dataset$test_category, k=k)$accuracy)
-  }
-  print(paste("KNN K=", k, "Average Accuracy in 30 run",mean(accuracies)))
-  avg_accuracy <- c(avg_accuracy,mean(accuracies))
-}
+# k-fold cross validation (k=3)
+fitControl <- trainControl(method = "repeatedcv",
+                           number = 3, 
+                           repeats = 3)
 
-print("---------------------------------------------------------")
+# Concat X and y for SVM training
+svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
 
 
-# Table of k-values & average accuracies
-acc_df <- data.frame(k_value,avg_accuracy)
+#str(svm_data)
 
-write.csv(acc_df,"acc_df.csv", row.names = FALSE) #export df
+# SVM Classifier
+svm_classifier <- svm(Winner ~ ., 
+                      data = svm_data, 
+                      type = 'C-classification', 
+                      kernel = 'radial',
+                      trControl = fitControl,
+                      cost=10,
+                      scale=TRUE,
+                      probability=TRUE)
 
-# KNN and PCA-KNN Evaluation on K = 70
-knn_pred <- perform_knn(df_train = prepared_dataset$training_set, df_test = prepared_dataset$testing_set, df_target_category = prepared_dataset$target_category,
-                        df_test_category = prepared_dataset$test_category, k=70)$predicted
+svmpred <- predict(svm_classifier, newdata=prepared_dataset$testing_set, probability = TRUE)
+
 
 # Confusion Matrix
-print("Normal KNN Consufion Matrix:")
-cm <- confusionMatrix(knn_pred, prepared_dataset$test_category)
+print("Normal SVM Consufion Matrix:")
+cm <- confusionMatrix(table(svmpred, prepared_dataset$test_category)) 
 print(cm)
-
 print("---------------------------------------------------------")
 
+print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
 
-# Print accuracy
-print(paste("KNN Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
+# Save SVM model
+#saveRDS(svm_classifier, file = "SVM_MODEL.rds"
+#        ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
 
-print("~~ KNN ENDED:")
+
+print("~~ SVM ENDED:")
 
 #
 #********************Matrix Visualization*****************************
 #
 
-table <- data.frame(confusionMatrix(knn_pred, prepared_dataset$test_category)$table)
+table <- data.frame(confusionMatrix(svmpred, prepared_dataset$test_category)$table)
 
 plotTable <- table %>%
   mutate(goodbad = ifelse(table$Prediction == table$Reference, "good", "bad")) %>%

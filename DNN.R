@@ -84,7 +84,7 @@ output_col_n = 1 # output target
 UFC_DATA[-output_col_n]<-scale(UFC_DATA[-output_col_n]) # centre dataset
 
 # Train/test split with 0.8 ratio with no normalisation   
-prepared_dataset <- prepare_data(UFC_DATA, output_col_n = output_col_n,ratio = 0.1, normalized = FALSE)
+prepared_dataset <- prepare_data(UFC_DATA, output_col_n = output_col_n,ratio = 0.8, normalized = FALSE)
 
 
 
@@ -123,4 +123,10 @@ print(paste("DNN Accuracy in",length(prepared_dataset$test_category),"unseen dat
 #        ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
 
 print("~~ DNN ENDED:")
+
+
+save(dnn_classifier, file="dnn.rda")
+# Save DNN model
+saveRDS(dnn_classifier, file = "DNN_MODEL.rds"
+       ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
 
