@@ -19,47 +19,9 @@ library(formattable)
 library(randomForest)
 ######
 
-data <- read.csv("data.csv")
 
-########## 2010 sonrası ve secilmis features #############
+df2 <- read.csv("df2.csv")
 
-df1 <- data %>%
-  select(date, Winner, title_bout, weight_class,B_fighter, B_Height_cms, B_Reach_cms, B_age, B_current_lose_streak, B_current_win_streak,B_longest_win_streak, B_losses,B_wins,B_total_rounds_fought, B_total_title_bouts,B_win_by_KO.TKO,B_win_by_Submission, B_win_by_Decision_Majority,B_win_by_Decision_Split,B_win_by_Decision_Unanimous,B_win_by_TKO_Doctor_Stoppage,
-         R_fighter, R_Height_cms, R_Reach_cms, R_age,
-         R_current_lose_streak, R_current_win_streak,R_longest_win_streak, R_losses,R_wins,R_total_rounds_fought,
-         R_total_title_bouts,R_win_by_KO.TKO,R_win_by_Submission,
-         R_win_by_Decision_Majority,R_win_by_Decision_Split,R_win_by_Decision_Unanimous,R_win_by_TKO_Doctor_Stoppage)
-
-
-df1 <- subset.data.frame(df1, subset= date >= "2010-01-01")
-
-dim(df1)
-
-# null iceren dataset degiskenleri
-
-cat_var1 <- names(df1)[which(sapply(df1, is.character))] #kategorik
-numeric_var1 <- names(df1)[which(sapply(df1, is.numeric))] #numeric
-
-colSums(sapply(df1[,.SD, .SDcols = cat_var1], is.na))
-
-colSums(sapply(df1[,.SD, .SDcols = numeric_var1], is.na)) #numericte null kontrolu
-
-# null icermeyen  dataset degiskenleri
-
-df2 <- na.omit(df1) ##null rowlari sildi
-
-plot_Missing(df2[,colSums(is.na(df2)) >= 0, with = FALSE])
-
-
-cat_var2 <- names(df2)[which(sapply(df2, is.character))] #kategorik
-numeric_var2 <- names(df2)[which(sapply(df2, is.numeric))] #numeric
-
-colSums(sapply(df2[,.SD, .SDcols = cat_var2], is.na)) #kategorikte null kontrolu
-colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontrolu
-
-dim(data)
-dim(df1)
-dim(df2)
 ################################
 df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))
 df2$title_bout <- as.numeric(factor(df2$title_bout))

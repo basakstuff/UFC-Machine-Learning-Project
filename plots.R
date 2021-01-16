@@ -74,6 +74,8 @@ colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontro
 ########plots#################
 colnames(df2)
 
+write.csv(df2,"df2.csv", row.names = FALSE)
+
 ggplot(df2, aes(x=(R_Reach_cms - B_Reach_cms), y =..density.., fill=..count..)) + geom_histogram(binwidth = 5, ) + labs(x = "Reach Difference (cm)", title = "Histogram for Red Fighter Reach Difference") + scale_fill_gradient("Count", low="green", high="red")
 
 # make a bar plot
@@ -106,6 +108,7 @@ df2 %>% filter(Winner == "Blue") %>% count(weight_class) #weight_class'a göre k
 df2 %>% filter(Winner == "Red") %>% count(weight_class) #weight_class'a göre kazanan red
 
 b_win <- df2 %>% filter(Winner == "Blue")
+dim(df2)
 
 #####correlation#########
 
