@@ -18,26 +18,52 @@ library(class)
 library(formattable)
 ######
 
-df2 <- read.csv("df2.csv")
-<<<<<<< HEAD
-colnames(df2)
-=======
->>>>>>> 53afcc65dad91f81accdb51a50449e8de59926dc
+data <- read.csv("data.csv")
 
+########## 2010 sonrası ve secilmis features #############
+
+df1 <- data %>%
+  select(date, Winner, title_bout, weight_class,B_fighter, B_Height_cms, B_Reach_cms, B_age, B_current_lose_streak, B_current_win_streak,B_longest_win_streak, B_losses,B_wins,B_total_rounds_fought, B_total_title_bouts,B_win_by_KO.TKO,B_win_by_Submission, B_win_by_Decision_Majority,B_win_by_Decision_Split,B_win_by_Decision_Unanimous,B_win_by_TKO_Doctor_Stoppage,
+         R_fighter, R_Height_cms, R_Reach_cms, R_age,
+         R_current_lose_streak, R_current_win_streak,R_longest_win_streak, R_losses,R_wins,R_total_rounds_fought,
+         R_total_title_bouts,R_win_by_KO.TKO,R_win_by_Submission,
+         R_win_by_Decision_Majority,R_win_by_Decision_Split,R_win_by_Decision_Unanimous,R_win_by_TKO_Doctor_Stoppage)
+
+
+df1 <- subset.data.frame(df1, subset= date >= "2010-01-01")
+
+dim(df1)
+
+# null iceren dataset degiskenleri
+
+cat_var1 <- names(df1)[which(sapply(df1, is.character))] #kategorik
+numeric_var1 <- names(df1)[which(sapply(df1, is.numeric))] #numeric
+
+colSums(sapply(df1[,.SD, .SDcols = cat_var1], is.na))
+
+colSums(sapply(df1[,.SD, .SDcols = numeric_var1], is.na)) #numericte null kontrolu
+
+# null icermeyen  dataset degiskenleri
+
+df2 <- na.omit(df1) ##null rowlari sildi
+
+
+cat_var2 <- names(df2)[which(sapply(df2, is.character))] #kategorik
+numeric_var2 <- names(df2)[which(sapply(df2, is.numeric))] #numeric
+
+colSums(sapply(df2[,.SD, .SDcols = cat_var2], is.na)) #kategorikte null kontrolu
+colSums(sapply(df2[,.SD, .SDcols = numeric_var2], is.na)) #numericte null kontrolu
+
+dim(data)
+dim(df1)
+dim(df2)
 ################################
 df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))
 df2$title_bout <- as.numeric(factor(df2$title_bout))
 df2$weight_class <- as.numeric(factor(df2$weight_class))
-<<<<<<< HEAD
-df2 <- subset.data.frame(df2, subset= Winner!="Draw")
-df2$Winner<-factor(df2$Winner)
-table(df2$Winner)
-#df2$Winner <- as.numeric(factor(df2$Winner))
-=======
 df2$Winner<-factor(df2$Winner)
 #df2$Winner <- as.numeric(factor(df2$Winner))
 
->>>>>>> 53afcc65dad91f81accdb51a50449e8de59926dc
 ###########################################################
 
 
@@ -64,69 +90,49 @@ prepare_data <- function(df, output_col_n, ratio){
 }
 
 
-# ************************************************
-# main code goes below:
-# ************************************************
-
 UFC_DATA <- df2 # Normal data
 
-#grep("Winner", colnames(UFC_DATA))
-
 set.seed(123)
-# Train/test split with 0.8 ratio
-prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 1, ratio = 0.8)
 
-<<<<<<< HEAD
-=======
+print("Running ... ")
+
+# Train/test split with 0.8 ratio   # for representation changed to 0.1
+prepared_dataset <- prepare_data(df = UFC_DATA, output_col_n = 1, ratio = 0.8)
 
 # k-fold cross validation (k=3)
 fitControl <- trainControl(method = "repeatedcv",
                            number = 3, 
                            repeats = 3)
 
->>>>>>> 53afcc65dad91f81accdb51a50449e8de59926dc
-# Concat X and y for SVM training
-svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepared_dataset$training_set)
+# NN classifier
+nn_classifier <- train(prepared_dataset$training_set, prepared_dataset$target_category,
+                 method = "pcaNNet", # performs with PCA
+                 trControl = fitControl,
+                 verbose = FALSE,
+                 trace = T)
 
+nnetplot3 = plot(varImp(nn_classifier, scale = F),main="Neural Network: Factor Importance")
+print(nnetplot3)
 
-#str(svm_data)
-
-# SVM Classifier
-svm_classifier <- svm(Winner ~ ., 
-                      data = svm_data, 
-                      type = 'C-classification', 
-                      kernel = 'radial',
-<<<<<<< HEAD
-=======
-                      trControl = fitControl,
->>>>>>> 53afcc65dad91f81accdb51a50449e8de59926dc
-                      cost=10,
-                      scale=TRUE,
-                      probability=TRUE)
-
-svmpred <- predict(svm_classifier, newdata=prepared_dataset$testing_set, probability = TRUE)
-
+# NN Predictions on unseen testing set
+nnpred <- predict(nn_classifier, prepared_dataset$testing_set)
 
 # Confusion Matrix
-print("Normal SVM Consufion Matrix:")
-cm <- confusionMatrix(table(svmpred, prepared_dataset$test_category)) 
+print("NN Consufion Matrix:")
+cm <- confusionMatrix(nnpred, prepared_dataset$test_category)
 print(cm)
-print("---------------------------------------------------------")
 
-print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
-
-# Save SVM model
-#saveRDS(svm_classifier, file = "SVM_MODEL.rds"
-#        ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)
+# Print accuracy
+print(paste("NN Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
 
 
-print("~~ SVM ENDED:")
+print("~~ NN ENDED:")
 
 #
 #********************Matrix Visualization*****************************
 #
 
-table <- data.frame(confusionMatrix(svmpred, prepared_dataset$test_category)$table)
+table <- data.frame(confusionMatrix(nnpred, prepared_dataset$test_category)$table)
 
 plotTable <- table %>%
   mutate(goodbad = ifelse(table$Prediction == table$Reference, "good", "bad")) %>%
@@ -141,9 +147,6 @@ ggplot(data = plotTable, mapping = aes(x = Reference, y = Prediction, fill = goo
   theme_bw() +
   xlim(rev(levels(table$Reference)))
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 53afcc65dad91f81accdb51a50449e8de59926dc
+# Save DNN model
+saveRDS(nn_classifier, file = "NN_MODEL.rds"
+       ,ascii = FALSE, version = NULL,compress = TRUE, refhook = NULL)

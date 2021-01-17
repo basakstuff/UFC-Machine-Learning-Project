@@ -31,7 +31,7 @@ library(formattable)
 library(funModeling) 
 library(tidyverse) 
 library(Hmisc)
-data <- read.csv("data.csv")
+data <- read.csv("C:/Users/basak/Desktop/ml project/UFC-Machine-Learning-Project/data.csv")
 setDT(data)
 ```
 ### Missing Value plot

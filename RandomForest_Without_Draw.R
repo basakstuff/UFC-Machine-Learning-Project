@@ -20,7 +20,7 @@ library(randomForest)
 ######
 
 
-df2 <- read.csv("df2.csv")
+df2 <- read.csv("ufc_data.csv")
 
 ################################
 df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))

@@ -50,7 +50,7 @@ a<-plot_ly(acc_df,x=x, y=y1, type="scatter", mode="line", name="KNN") %>%
     title="KNN Average Accuracy on 30 runs per K",
     yaxis = list(
       title="Accuracy (%)",
-      range=c(55,72)
+      range=c(45,60)
     ),
     xaxis = list(
       title="K Value",

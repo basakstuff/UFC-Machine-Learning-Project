@@ -19,7 +19,8 @@ library(formattable)
 library(randomForest)
 ######
 
-df2 <- read.csv("df2.csv")
+df2 <- read.csv("ufc_data.csv")
+pca <-read.csv("UFC_PCA.csv")
 
 ################################
 df2 <- subset(df2, select=-c(R_fighter,B_fighter, date))
@@ -75,9 +76,14 @@ perform_knn <- function(df_train, df_test, df_target_category,
 # ************************************************
 k_value <- c()
 avg_accuracy <- c()
+pca_k_value <- c()
+pca_avg_accuracy <- c()
 
 
 UFC_DATA <- df2 # Normal data
+UFC_PCA <- pca
+PCA_cols <- names(UFC_PCA)[2:length(names(UFC_PCA))] # PCA column names excluding Winner
+
 
 #grep("Winner", colnames(UFC_DATA))
 
@@ -85,6 +91,12 @@ set.seed(123)
 
 # Train/test split with 0.8 ratio
 prepared_dataset <- prepare_data(df = UFC_DATA,output_col_n = 1, ratio = 0.8)
+
+
+# PCA train/test are subset of prepared_dataset with PCA_cols only
+pca_train <- prepared_dataset$training_set %>% select(PCA_cols)
+pca_test <- prepared_dataset$testing_set %>% select(PCA_cols)
+
 
 
 # KNN: Experiment tange of K values:    # note: initially, values 1 to 100 were tested as k.
@@ -106,25 +118,53 @@ for(k in 1:100){
 print("---------------------------------------------------------")
 
 
-# Table of k-values & average accuracies
-acc_df <- data.frame(k_value,avg_accuracy)
+# PCA KNN: Experiment tange of K values:    # note: initially, values 1 to 100 were tested as k.
+for(k in 1:100){
+  pca_k_value <- c(pca_k_value,k)
+  
+  # accuracy per run
+  accuracies <- c()
+  
+  # number of runs per k    # note: initially, tested for 30 runs
+  for(i in 1:30){
+    accuracies<- c(accuracies,perform_knn(df_train = pca_train, df_test = pca_test, df_target_category = prepared_dataset$target_category,
+                                          df_test_category = prepared_dataset$test_category, k=k)$accuracy)
+  }
+  print(paste("PCA-KNN K=", k, "Average Accuracy in 30 run",mean(accuracies)))
+  pca_avg_accuracy <- c(pca_avg_accuracy,mean(accuracies))
+}
+print("---------------------------------------------------------")
 
-write.csv(acc_df,"acc_df.csv", row.names = FALSE) #export df
+# Table of k-values & average accuracies
+acc_df <- data.frame(k_value,avg_accuracy,pca_k_value,pca_avg_accuracy)
+
+
+
+#write.csv(acc_df,"acc_df.csv", row.names = FALSE) #export df
 
 # KNN and PCA-KNN Evaluation on K = 70
 knn_pred <- perform_knn(df_train = prepared_dataset$training_set, df_test = prepared_dataset$testing_set, df_target_category = prepared_dataset$target_category,
                         df_test_category = prepared_dataset$test_category, k=70)$predicted
 
+pca_knn_pred <- perform_knn(df_train = pca_train, df_test = pca_test, df_target_category = prepared_dataset$target_category,
+                            df_test_category = prepared_dataset$test_category, k=70)$predicted
+
+
 # Confusion Matrix
 print("Normal KNN Consufion Matrix:")
 cm <- confusionMatrix(knn_pred, prepared_dataset$test_category)
 print(cm)
+# Print accuracy
+print(paste("KNN Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
 
 print("---------------------------------------------------------")
 
+print("PCA KNN Consufion Matrix:")
+pca_cm <- confusionMatrix(pca_knn_pred, prepared_dataset$test_category)
+print(pca_cm)
+print(paste("PCA_KNN Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(pca_cm$overall[1], 4)*100,"%" ))
+print("---------------------------------------------------------")
 
-# Print accuracy
-print(paste("KNN Accuracy in",length(prepared_dataset$test_category),"unseen data:", round(cm$overall[1], 4)*100,"%" ))
 
 print("~~ KNN ENDED:")
 

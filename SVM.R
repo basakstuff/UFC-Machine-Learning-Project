@@ -71,11 +71,17 @@ svm_data <- data.frame(Winner=as.factor(prepared_dataset$target_category), prepa
 
 #str(svm_data)
 
+# k-fold cross validation (k=3)
+fitControl <- trainControl(method = "repeatedcv",
+                           number = 10, 
+                           repeats = 5)
+
 # SVM Classifier
 svm_classifier <- svm(Winner ~ ., 
                       data = svm_data, 
                       type = 'C-classification', 
                       kernel = 'radial',
+                      trControl = fitControl,
                       cost=10,
                       scale=TRUE,
                       probability=TRUE)
@@ -97,6 +103,7 @@ print(paste("SVM Accuracy in",length(prepared_dataset$test_category),"unseen dat
 
 
 print("~~ SVM ENDED:")
+table(UFC_DATA$Winner)
 
 #
 #********************Matrix Visualization*****************************
