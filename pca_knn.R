@@ -1,22 +1,13 @@
 ##libraries####
-load.libraries <- c('data.table', 'testthat', 'gridExtra', 'corrplot', 'GGally', 'ggplot2', 'e1071', 'dplyr')
+load.libraries <- c('data.table', 'testthat', 'gridExtra', 'corrplot', 'GGally', 
+                    'ggplot2', 'e1071', 'dplyr', 'Hmisc', 'tidyverse', 'funModeling',
+                    'plotly','psych','rattle','caret','tree', 'rpart','magrittr',
+                    'class','formattable','randomForest')
 install.lib <- load.libraries[!load.libraries %in% installed.packages()]
 for(libs in install.lib) install.packages(libs, dependences = TRUE)
 sapply(load.libraries, require, character = TRUE)
-library(data.table)
-library(ggplot2) #data visualization
-library(plotly) #interactive data visualization
-library(psych) #correlation visualization helping
-library(rattle) #graphing decesiion trees
-library(caret) # machine learning
-library(tree)
-library(e1071)
-library(rpart)
-library(magrittr) # needs to be run every time you start R and want to use %>%
-library(dplyr)    # alternatively, this also loads %>%
-library(class)
-library(formattable)
-library(randomForest)
+
+
 ######
 
 df2 <- read.csv("ufc_data.csv")

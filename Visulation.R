@@ -1,20 +1,12 @@
-load.libraries <- c('data.table', 'testthat', 'gridExtra', 'corrplot', 'GGally', 'ggplot2', 'e1071', 'dplyr')
+load.libraries <- c('data.table', 'testthat', 'gridExtra', 'corrplot', 'GGally', 
+                    'ggplot2', 'e1071', 'dplyr', 'Hmisc', 'tidyverse', 'funModeling',
+                    'plotly','psych','rattle','caret','tree', 'rpart','magrittr',
+                    'class','formattable','randomForest')
 install.lib <- load.libraries[!load.libraries %in% installed.packages()]
 for(libs in install.lib) install.packages(libs, dependences = TRUE)
 sapply(load.libraries, require, character = TRUE)
-library(data.table)
-library(ggplot2) #data visualization
-library(plotly) #interactive data visualization
-library(psych) #correlation visualization helping
-library(rattle) #graphing decision trees
-library(caret) # machine learning
-library(tree)
-library(e1071)
-library(rpart)
-library(magrittr) # needs to be run every time you start R and want to use %>%
-library(dplyr)    # alternatively, this also loads %>%
-library(class)
-library(formattable)
+
+
 
 data <- read.csv("data.csv")
 setDT(data)
@@ -42,7 +34,7 @@ colSums(sapply(data[,.SD, .SDcols = cat_var], is.na)) #kategorikte null kontrolu
 colSums(sapply(data[,.SD, .SDcols = numeric_var], is.na)) #numericte null kontrolu
 
 plot_Missing(data)
- #############################
+#############################
 
 ufc_data <- data %>%
   select(date, Winner, title_bout, weight_class,B_fighter, B_Height_cms, B_Reach_cms, B_age, B_current_lose_streak, B_current_win_streak,B_longest_win_streak, B_losses,B_wins,B_total_rounds_fought, B_total_title_bouts,B_win_by_KO.TKO,B_win_by_Submission, B_win_by_Decision_Majority,B_win_by_Decision_Split,B_win_by_Decision_Unanimous,B_win_by_TKO_Doctor_Stoppage,
