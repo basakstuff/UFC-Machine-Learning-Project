@@ -62,7 +62,7 @@ numeric_ufc <- names(ufc_data)[which(sapply(ufc_data, is.numeric))] #numeric
 colSums(sapply(ufc_data, is.na))
 
 plot_Missing(ufc_data)
-################################missing kaldır
+################################ delete missing
 
 ufc_data <- na.omit(ufc_data)
 plot_Missing(ufc_data)
@@ -70,6 +70,60 @@ dim(ufc_data)
 
 colnames(ufc_data)
 write.csv(ufc_data,"ufc_data.csv", row.names = FALSE)
+
+# ************************************************
+# perform_PCA()
+# ************************************************
+perform_PCA <- function(df) {
+  
+  # PCA and Plotting Component Variance
+  df.prc = prcomp(df, center = TRUE,scale = TRUE)
+  
+  # Variance
+  variance = df.prc$sdev ^ 2
+  
+  # Kaiser Criterion
+  pca_vars = variance[variance >= 1] 
+  number_of_PCAs = length(pca_vars)
+  
+  #Scree Plot
+  screeplot(df.prc,type = "line",main = "PCA: Scree Plot")
+  
+  #Varimax Rotation
+  df.varimax_rotation = varimax(df.prc$rotation)
+  
+  test = data.frame(unclass(df.varimax_rotation$loadings))
+  test = cbind(rownames(test),test)
+  row.names(test)<-1:nrow(test)
+  
+  colnames_test = names(test)
+  colnames_test = colnames_test[2:number_of_PCAs]
+  selected_variables = c()
+  for(i in colnames_test){
+    for (k in 1:nrow(test)){
+      if (test[k,i]>0.2 | test[k,i]<=-0.2){
+        selected_variables <- c(selected_variables,paste(test[k,1]))
+      }
+    }
+  }
+  return(selected_variables)
+}
+
+df <- read.csv("ufc_data.csv")
+df <- subset(df, select=-c(R_fighter,B_fighter, date))
+df$title_bout <- as.numeric(factor(df$title_bout))
+df$weight_class <- as.numeric(factor(df$weight_class))
+df$Winner<-factor(df$Winner)
+PCA_cols <- perform_PCA(df[,-1])
+
+normalised <- function(x) {return((x - min(x,rm.na=TRUE))/(max(x,rm.na=TRUE)-min(x,rm.na=TRUE)))}
+
+UFC_PCA<-data.frame(df[1],df[,PCA_cols]) # concat 1st column
+cat("[1] Principle Components: \n", PCA_cols,"\n",sep =" | ")
+
+
+write.csv(UFC_PCA,"UFC_PCA.csv", row.names = FALSE)
+
 
 ### Visualization of numeric column information
 plot_num(ufc_data)
@@ -211,35 +265,6 @@ p3 <- ggplot(fighter_measures, aes(x=reach))+
 grid.arrange(p1, p2, p3, nrow=3)
 
 
-# *********************** #
-# Models' Accuracy radar chart
-h <- plot_ly(type = 'scatterpolar', fill = 'toself', mode="markers") %>%
-  add_trace(
-    r = c(58.3, 59.63, 55.95, 56.44),
-    theta = c('KNN','SVM','DNN', 'RF'),
-    name = 'Normal Data'
-  ) %>%
-  layout(
-    margin=c(l=1,r=1,t=2,b=1),
-    title = "Models Accuracy Performance",
-    polar = list(
-      radialaxis = list(
-        visible = T,
-        range = c(50,65)
-      )
-    )
-  )
-print(h)
-
-# *********************** #
-# Models' Accuracy bar chart
-models <- c("KNN", "SVM", "DNN", "RF")
-normalt <- c(0.58, 0.59, 0.55, 0.56)
-data <- data.frame(models, normalt)
-
-i <- plot_ly(data, x = ~models, y = ~normalt, type = 'bar', name = 'Normal Data') %>%
-  layout(yaxis = list(title = 'Accuracy (%)',range=c(0.5,0.6)), barmode = 'group')
-print(i)
 
 print("~~ VISUALISATION ENDED:")
 
