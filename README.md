@@ -1,6 +1,7 @@
 # UFC-Machine-Learning-Project
 ### CME 4403 Introduction to Machine Learning Course Term Project
 
+This project aims to find out which side will win the fight. This prediction was made with traditional machine learning algorithms.
 
 # Dataset
 
