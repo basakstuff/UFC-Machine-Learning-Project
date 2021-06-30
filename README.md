@@ -74,4 +74,7 @@ As a conclusion, I have used an already prepared dataset related to a mixed mart
 
 # Author 
 
-[@Basak ER](https://www.linkedin.com/in/basaker/)
+<p>
+  <a href="https://www.linkedin.com/in/basaker" rel="nofollow noreferrer">
+    <img src="https://i.stack.imgur.com/gVE0j.png" alt="linkedin"> LinkedIn
+  </a> &nbsp; 
